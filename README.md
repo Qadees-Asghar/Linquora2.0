@@ -5,6 +5,7 @@ A smart CLI-based hospital management system built with Python.
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Active-success)
+![Version](https://img.shields.io/badge/Version-2.0.0-orange)
 ![Stars](https://img.shields.io/github/stars/Qadees-Asghar/Linquora2.0?style=social)
 ![Forks](https://img.shields.io/github/forks/Qadees-Asghar/Linquora2.0?style=social)
 ![Issues](https://img.shields.io/github/issues/Qadees-Asghar/Linquora2.0)
@@ -40,6 +41,7 @@ Linquora 2.0 is a simple and efficient command-line based Hospital Management Sy
 - View all registered patients
 - Update patient disease information
 - Delete single or multiple patients using comma-separated IDs
+- Search patients by name
 - Auto-removes patient from assigned room on deletion
 
 ### Doctor Management
@@ -47,10 +49,13 @@ Linquora 2.0 is a simple and efficient command-line based Hospital Management Sy
 - View all doctors
 - Update doctor department
 - Delete doctors
+- Search doctors by department
 
 ### Appointment Management
 - Book appointments linking Patient ID, Doctor ID, and Time
-- View all appointments
+- View all appointments with patient and doctor names
+- Filter appointments by patient
+- Filter appointments by doctor
 - Cancel individual appointments
 - Clear all appointments at once
 
@@ -76,13 +81,19 @@ Linquora 2.0 is a simple and efficient command-line based Hospital Management Sy
 `
 Linquora2.0/
 |-- hospital_management_system.py   # Main application
+|-- version.py                      # Version metadata
 |-- patients.txt                    # Patient records (auto-generated)
 |-- doctors.txt                     # Doctor records (auto-generated)
 |-- appointments.txt                # Appointment records (auto-generated)
 |-- rooms.txt                       # Room records (auto-generated)
+|-- sample_data/                    # Sample data for testing
+|-- docs/                           # Detailed documentation
 |-- CONTRIBUTORS.md                 # Contributors list
 |-- CONTRIBUTING.md                 # Contribution guidelines
 |-- CHANGELOG.md                    # Version history
+|-- ROADMAP.md                      # Future plans
+|-- FAQ.md                          # Frequently asked questions
+|-- USAGE.md                        # Detailed usage guide
 |-- LICENSE                         # MIT License
 |-- README.md                       # Project documentation
 `
@@ -93,7 +104,7 @@ Linquora2.0/
 
 ### Prerequisites
 
-- Python 3.x installed
+- Python 3.6 or higher
 
 ### Installation
 
@@ -112,6 +123,7 @@ On launch you will see the main menu:
 `
 =================================
  Hospital Management System
+ Linquora 2.0
 =================================
 
 1 Patient Management
@@ -122,6 +134,7 @@ On launch you will see the main menu:
 `
 
 Navigate using number keys. All data is automatically saved after every operation.
+For a full usage walkthrough, see [USAGE.md](USAGE.md).
 
 ---
 
