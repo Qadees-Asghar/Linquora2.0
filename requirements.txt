@@ -1,0 +1,6 @@
+# Linquora 2.0 - Requirements
+# No external packages required. Pure Python 3.x standard library only.
+# Python >= 3.6 recommended
+
+# For development/testing (optional):
+# pytest>=7.0.0
