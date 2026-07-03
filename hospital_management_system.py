@@ -1,11 +1,14 @@
 # =====================================================
 # HOSPITAL MANAGEMENT SYSTEM
 # Linquora 2.0
-# Author: Qadees Asghar
-# Version: 2.0.0
-# Description: A CLI-based hospital management system
-#              supporting patients, doctors, appointments,
-#              and rooms with persistent file storage.
+# =====================================================
+# Author      : Qadees Asghar
+# Version     : 2.0.0
+# License     : MIT
+# Repository  : https://github.com/Qadees-Asghar/Linquora2.0
+# Description : A CLI-based hospital management system
+#               for managing patients, doctors, appointments,
+#               and rooms with persistent file storage.
 # =====================================================
 
 PATIENT_FILE     = "patients.txt"
@@ -32,8 +35,9 @@ def load_data(file):
         with open(file, "r") as f:
             for line in f:
                 parts = line.strip().split("|")
-                data[parts[0]] = parts[1:]
-    except:
+                if parts and parts[0]:
+                    data[parts[0]] = parts[1:]
+    except FileNotFoundError:
         pass
     return data
 
@@ -74,17 +78,17 @@ doctors      = load_data(DOCTOR_FILE)
 appointments = load_data(APPOINTMENT_FILE)
 rooms        = {}
 
-# Load rooms with patient list
+# Load rooms with patient list (custom format with nested comma list)
 try:
     with open(ROOM_FILE, "r") as f:
         for line in f:
-            parts = line.strip().split("|")
+            parts        = line.strip().split("|")
             room_num     = parts[0]
             room_type    = parts[1]
             max_capacity = int(parts[2])
             patient_ids  = parts[3].split(",") if len(parts) > 3 and parts[3] else []
             rooms[room_num] = [room_type, max_capacity, patient_ids]
-except:
+except FileNotFoundError:
     pass
 
 # =====================================================
@@ -92,7 +96,7 @@ except:
 # =====================================================
 
 def add_patient():
-    """Register a new patient and save to file."""
+    """Register a new patient with full details and save to file."""
     pid = generate_id(patients)
     patients[pid] = [
         input("Enter patient name: "),
@@ -151,7 +155,7 @@ def delete_patient():
 
 
 def search_patient():
-    """Search for patients by name (case-insensitive partial match)."""
+    """Search for patients by name using case-insensitive partial match."""
     query   = input("Enter patient name to search: ").lower()
     results = [(pid, p) for pid, p in patients.items() if query in p[0].lower()]
     if not results:
@@ -189,7 +193,7 @@ def patient_menu():
 # =====================================================
 
 def add_doctor():
-    """Add a new doctor and save to file."""
+    """Add a new doctor with name and department."""
     did = generate_id(doctors)
     doctors[did] = [
         input("Enter doctor name: "),
@@ -232,7 +236,7 @@ def delete_doctor():
 
 
 def search_doctor():
-    """Search doctors by department (case-insensitive partial match)."""
+    """Search doctors by department using case-insensitive partial match."""
     query   = input("Enter department to search: ").lower()
     results = [(did, d) for did, d in doctors.items() if query in d[1].lower()]
     if not results:
@@ -270,7 +274,7 @@ def doctor_menu():
 # =====================================================
 
 def book_appointment():
-    """Book an appointment between a patient and a doctor."""
+    """Book an appointment between a patient and a doctor with time."""
     aid  = generate_id(appointments)
     pid  = input("Enter Patient ID: ")
     did  = input("Enter Doctor ID: ")
@@ -284,7 +288,7 @@ def book_appointment():
 
 
 def view_appointments():
-    """Display all scheduled appointments."""
+    """Display all scheduled appointments with resolved patient and doctor names."""
     if not appointments:
         print("No appointments found.")
         return
@@ -295,7 +299,7 @@ def view_appointments():
 
 
 def view_appointments_by_patient():
-    """View all appointments for a specific patient."""
+    """View all appointments for a specific patient ID."""
     pid     = input("Enter Patient ID: ")
     results = [(aid, a) for aid, a in appointments.items() if a[0] == pid]
     if not results:
@@ -307,7 +311,7 @@ def view_appointments_by_patient():
 
 
 def view_appointments_by_doctor():
-    """View all appointments for a specific doctor."""
+    """View all appointments for a specific doctor ID."""
     did     = input("Enter Doctor ID: ")
     results = [(aid, a) for aid, a in appointments.items() if a[1] == did]
     if not results:
@@ -319,7 +323,7 @@ def view_appointments_by_doctor():
 
 
 def cancel_appointment():
-    """Cancel an appointment by ID."""
+    """Cancel an appointment by its ID."""
     aid = input("Enter Appointment ID to cancel: ")
     if aid in appointments:
         del appointments[aid]
@@ -362,19 +366,21 @@ def appointment_menu():
 # =====================================================
 
 ROOM_CAPACITY = {
-    "General":     5,
+    "General":      5,
     "Semi-Private": 2,
-    "Private":     1,
-    "ICU":         1
+    "Private":      1,
+    "Icu":          1
 }
 
 
 def add_room():
-    """Add a new room with auto-assigned capacity based on type."""
+    """Add a new room with auto-assigned capacity based on room type."""
     rn    = input("Enter Room Number: ")
     rtype = input("Enter Room Type (General/Semi-Private/Private/ICU): ").capitalize()
+    if rtype == "Icu":
+        rtype = "Icu"
     if rtype not in ROOM_CAPACITY:
-        print("Invalid room type!")
+        print("Invalid room type! Choose: General, Semi-Private, Private, ICU")
         return
     rooms[rn] = [rtype, ROOM_CAPACITY[rtype], []]
     save_data(ROOM_FILE, rooms)
@@ -382,7 +388,7 @@ def add_room():
 
 
 def allot_room():
-    """Allot a room to a patient based on selected room type."""
+    """Allot an available room to a patient based on selected room type."""
     pid = input("Enter Patient ID: ")
     if pid not in patients:
         print("Invalid Patient ID!")
@@ -410,7 +416,7 @@ def allot_room():
 
 
 def discharge_room():
-    """Discharge a single patient from a room."""
+    """Discharge a single patient from a specified room."""
     rn = input("Enter Room Number to vacate a patient: ")
     if rn in rooms:
         if not rooms[rn][2]:
