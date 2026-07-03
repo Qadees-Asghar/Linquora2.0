@@ -1,17 +1,32 @@
 # =====================================================
-# HOSPITAL MANAGEMENT SYSTEM 
+# HOSPITAL MANAGEMENT SYSTEM
+# Linquora 2.0
+# Author: Qadees Asghar
+# Version: 2.0.0
+# Description: A CLI-based hospital management system
+#              supporting patients, doctors, appointments,
+#              and rooms with persistent file storage.
 # =====================================================
 
-PATIENT_FILE = "patients.txt"
-DOCTOR_FILE = "doctors.txt"
+PATIENT_FILE     = "patients.txt"
+DOCTOR_FILE      = "doctors.txt"
 APPOINTMENT_FILE = "appointments.txt"
-ROOM_FILE = "rooms.txt"
+ROOM_FILE        = "rooms.txt"
 
-# =======================================
-#            COMMON FUNCTIONS
-# ======================================= 
+# =====================================================
+#                  COMMON FUNCTIONS
+# =====================================================
 
 def load_data(file):
+    """
+    Load records from a pipe-delimited text file into a dictionary.
+
+    Args:
+        file (str): Path to the data file.
+
+    Returns:
+        dict: Dictionary where keys are record IDs and values are field lists.
+    """
     data = {}
     try:
         with open(file, "r") as f:
@@ -22,7 +37,15 @@ def load_data(file):
         pass
     return data
 
+
 def save_data(file, data):
+    """
+    Save an in-memory dictionary to a pipe-delimited text file.
+
+    Args:
+        file (str): Path to the data file.
+        data (dict): Dictionary of records to save.
+    """
     with open(file, "w") as f:
         if file == ROOM_FILE:
             for k, v in data.items():
@@ -31,32 +54,45 @@ def save_data(file, data):
             for k, v in data.items():
                 f.write(k + "|" + "|".join(v) + "\n")
 
+
 def generate_id(data):
+    """
+    Generate a simple sequential numeric ID.
+
+    Args:
+        data (dict): Existing records dictionary.
+
+    Returns:
+        str: New unique ID as a string.
+    """
     return str(len(data) + 1)
 
-patients = load_data(PATIENT_FILE)
-doctors = load_data(DOCTOR_FILE)
+
+# Load all data on startup
+patients     = load_data(PATIENT_FILE)
+doctors      = load_data(DOCTOR_FILE)
 appointments = load_data(APPOINTMENT_FILE)
-rooms = {}
+rooms        = {}
 
 # Load rooms with patient list
 try:
     with open(ROOM_FILE, "r") as f:
         for line in f:
             parts = line.strip().split("|")
-            room_num = parts[0]
-            room_type = parts[1]
+            room_num     = parts[0]
+            room_type    = parts[1]
             max_capacity = int(parts[2])
-            patient_ids = parts[3].split(",") if len(parts) > 3 and parts[3] else []
+            patient_ids  = parts[3].split(",") if len(parts) > 3 and parts[3] else []
             rooms[room_num] = [room_type, max_capacity, patient_ids]
 except:
     pass
 
 # =====================================================
-# PATIENT MODULE
+#                  PATIENT MODULE
 # =====================================================
 
 def add_patient():
+    """Register a new patient and save to file."""
     pid = generate_id(patients)
     patients[pid] = [
         input("Enter patient name: "),
@@ -69,14 +105,18 @@ def add_patient():
     save_data(PATIENT_FILE, patients)
     print(f"Patient {patients[pid][0]} has been registered with ID {pid}.")
 
+
 def view_patients():
+    """Display all registered patients."""
     if not patients:
         print("No patients found.")
         return
     for pid, p in patients.items():
         print(f"ID:{pid} | Name:{p[0]} | Age:{p[1]} | Disease:{p[5]}")
 
+
 def update_patient():
+    """Update the disease field of an existing patient."""
     pid = input("Enter Patient ID to update: ")
     if pid in patients:
         patients[pid][5] = input("Enter new disease: ")
@@ -85,17 +125,17 @@ def update_patient():
     else:
         print("Patient not found.")
 
-# ------------------ DELETE PATIENT (SINGLE OR MULTIPLE) ------------------
+
 def delete_patient():
-    ids = input("Enter Patient ID(s) to delete (comma-separated for multiple): ").split(",")
-    deleted = []
+    """Delete one or more patients by ID (comma-separated for bulk delete)."""
+    ids       = input("Enter Patient ID(s) to delete (comma-separated for multiple): ").split(",")
+    deleted   = []
     not_found = []
     for pid in ids:
         pid = pid.strip()
         if pid in patients:
             name = patients[pid][0]
             del patients[pid]
-            # Remove patient from any rooms
             for r in rooms.values():
                 if pid in r[2]:
                     r[2].remove(pid)
@@ -109,32 +149,47 @@ def delete_patient():
     if not_found:
         print("Patient IDs not found:", ", ".join(not_found))
 
-# ------------------ UPDATED PATIENT MENU ------------------
+
+def search_patient():
+    """Search for patients by name (case-insensitive partial match)."""
+    query   = input("Enter patient name to search: ").lower()
+    results = [(pid, p) for pid, p in patients.items() if query in p[0].lower()]
+    if not results:
+        print("No matching patients found.")
+    else:
+        for pid, p in results:
+            print(f"ID:{pid} | Name:{p[0]} | Age:{p[1]} | Disease:{p[5]}")
+
+
 def patient_menu():
+    """Display and handle the patient management menu."""
     while True:
         print("""
 ==========================
     Patient Management
 ==========================
-              
+
 1 Register Patient
 2 View Patients
 3 Update Patient
 4 Delete Patient
-5 Back
+5 Search Patient
+6 Back
 """)
         c = input("Select: ")
-        if c == "1": add_patient()
+        if   c == "1": add_patient()
         elif c == "2": view_patients()
         elif c == "3": update_patient()
         elif c == "4": delete_patient()
-        elif c == "5": break
+        elif c == "5": search_patient()
+        elif c == "6": break
 
 # =====================================================
-# DOCTOR MODULE
+#                  DOCTOR MODULE
 # =====================================================
 
 def add_doctor():
+    """Add a new doctor and save to file."""
     did = generate_id(doctors)
     doctors[did] = [
         input("Enter doctor name: "),
@@ -143,14 +198,18 @@ def add_doctor():
     save_data(DOCTOR_FILE, doctors)
     print(f"Doctor {doctors[did][0]} added with ID {did}.")
 
+
 def view_doctors():
+    """Display all registered doctors."""
     if not doctors:
         print("No doctors found.")
         return
     for did, d in doctors.items():
         print(f"ID:{did} | Name:{d[0]} | Department:{d[1]}")
 
+
 def update_doctor():
+    """Update the department of an existing doctor."""
     did = input("Enter Doctor ID to update: ")
     if did in doctors:
         doctors[did][1] = input("Enter new department: ")
@@ -159,7 +218,9 @@ def update_doctor():
     else:
         print("Doctor not found.")
 
+
 def delete_doctor():
+    """Delete a doctor by ID."""
     did = input("Enter Doctor ID to delete: ")
     if did in doctors:
         name = doctors[did][0]
@@ -169,34 +230,50 @@ def delete_doctor():
     else:
         print("Doctor not found.")
 
+
+def search_doctor():
+    """Search doctors by department (case-insensitive partial match)."""
+    query   = input("Enter department to search: ").lower()
+    results = [(did, d) for did, d in doctors.items() if query in d[1].lower()]
+    if not results:
+        print("No matching doctors found.")
+    else:
+        for did, d in results:
+            print(f"ID:{did} | Name:{d[0]} | Department:{d[1]}")
+
+
 def doctor_menu():
+    """Display and handle the doctor management menu."""
     while True:
         print("""
 ============================
     Doctor Management
 ============================
-              
+
 1 Add Doctor
 2 View Doctors
 3 Update Doctor
 4 Delete Doctor
-5 Back
+5 Search by Department
+6 Back
 """)
         c = input("Select: ")
-        if c == "1": add_doctor()
+        if   c == "1": add_doctor()
         elif c == "2": view_doctors()
         elif c == "3": update_doctor()
         elif c == "4": delete_doctor()
-        elif c == "5": break
+        elif c == "5": search_doctor()
+        elif c == "6": break
 
 # =====================================================
-# APPOINTMENT MODULE
+#                APPOINTMENT MODULE
 # =====================================================
 
 def book_appointment():
-    aid = generate_id(appointments)
-    pid = input("Enter Patient ID: ")
-    did = input("Enter Doctor ID: ")
+    """Book an appointment between a patient and a doctor."""
+    aid  = generate_id(appointments)
+    pid  = input("Enter Patient ID: ")
+    did  = input("Enter Doctor ID: ")
     time = input("Enter Time (HH:MM): ")
     if pid in patients and did in doctors:
         appointments[aid] = [pid, did, time]
@@ -205,14 +282,44 @@ def book_appointment():
     else:
         print("Invalid Patient or Doctor ID.")
 
+
 def view_appointments():
+    """Display all scheduled appointments."""
     if not appointments:
         print("No appointments found.")
         return
     for aid, a in appointments.items():
-        print(f"ID:{aid} | Patient:{a[0]} | Doctor:{a[1]} | Time:{a[2]}")
+        pname = patients.get(a[0], ["Unknown"])[0]
+        dname = doctors.get(a[1], ["Unknown"])[0]
+        print(f"ID:{aid} | Patient:{pname} ({a[0]}) | Doctor:{dname} ({a[1]}) | Time:{a[2]}")
+
+
+def view_appointments_by_patient():
+    """View all appointments for a specific patient."""
+    pid     = input("Enter Patient ID: ")
+    results = [(aid, a) for aid, a in appointments.items() if a[0] == pid]
+    if not results:
+        print("No appointments found for this patient.")
+    else:
+        for aid, a in results:
+            dname = doctors.get(a[1], ["Unknown"])[0]
+            print(f"Appointment ID:{aid} | Doctor:{dname} | Time:{a[2]}")
+
+
+def view_appointments_by_doctor():
+    """View all appointments for a specific doctor."""
+    did     = input("Enter Doctor ID: ")
+    results = [(aid, a) for aid, a in appointments.items() if a[1] == did]
+    if not results:
+        print("No appointments found for this doctor.")
+    else:
+        for aid, a in results:
+            pname = patients.get(a[0], ["Unknown"])[0]
+            print(f"Appointment ID:{aid} | Patient:{pname} | Time:{a[2]}")
+
 
 def cancel_appointment():
+    """Cancel an appointment by ID."""
     aid = input("Enter Appointment ID to cancel: ")
     if aid in appointments:
         del appointments[aid]
@@ -221,43 +328,50 @@ def cancel_appointment():
     else:
         print("Appointment not found.")
 
+
 def appointment_menu():
+    """Display and handle the appointment management menu."""
     while True:
         print("""
 ============================
     Appointment Management
 ============================
-              
+
 1 Book Appointment
-2 View Appointments
-3 Cancel Appointment
-4 Clear All Appointments
-5 Back
+2 View All Appointments
+3 View Appointments by Patient
+4 View Appointments by Doctor
+5 Cancel Appointment
+6 Clear All Appointments
+7 Back
 """)
-        
         c = input("Select: ")
-        if c == "1": book_appointment()
+        if   c == "1": book_appointment()
         elif c == "2": view_appointments()
-        elif c == "3": cancel_appointment()
-        elif c == "4":
+        elif c == "3": view_appointments_by_patient()
+        elif c == "4": view_appointments_by_doctor()
+        elif c == "5": cancel_appointment()
+        elif c == "6":
             appointments.clear()
             save_data(APPOINTMENT_FILE, appointments)
             print("All appointments cleared.")
-        elif c == "5": break
+        elif c == "7": break
 
 # =====================================================
-# ROOM MODULE WITH CAPACITY & BULK DISCHARGE
+#                  ROOM MODULE
 # =====================================================
 
 ROOM_CAPACITY = {
-    "General": 5,
+    "General":     5,
     "Semi-Private": 2,
-    "Private": 1,
-    "ICU": 1
+    "Private":     1,
+    "ICU":         1
 }
 
+
 def add_room():
-    rn = input("Enter Room Number: ")
+    """Add a new room with auto-assigned capacity based on type."""
+    rn    = input("Enter Room Number: ")
     rtype = input("Enter Room Type (General/Semi-Private/Private/ICU): ").capitalize()
     if rtype not in ROOM_CAPACITY:
         print("Invalid room type!")
@@ -266,7 +380,9 @@ def add_room():
     save_data(ROOM_FILE, rooms)
     print(f"{rtype} Room {rn} added successfully with capacity {ROOM_CAPACITY[rtype]}.")
 
+
 def allot_room():
+    """Allot a room to a patient based on selected room type."""
     pid = input("Enter Patient ID: ")
     if pid not in patients:
         print("Invalid Patient ID!")
@@ -292,7 +408,9 @@ def allot_room():
 
     print(f"Sorry, all {room_type} rooms are full.")
 
+
 def discharge_room():
+    """Discharge a single patient from a room."""
     rn = input("Enter Room Number to vacate a patient: ")
     if rn in rooms:
         if not rooms[rn][2]:
@@ -300,18 +418,20 @@ def discharge_room():
             return
         print("Patients in room:")
         for pid in rooms[rn][2]:
-            print(f"{pid}: {patients.get(pid,['Unknown'])[0]}")
+            print(f"  {pid}: {patients.get(pid, ['Unknown'])[0]}")
         pid_to_remove = input("Enter Patient ID to remove: ")
         if pid_to_remove in rooms[rn][2]:
             rooms[rn][2].remove(pid_to_remove)
             save_data(ROOM_FILE, rooms)
-            print(f"Patient {patients.get(pid_to_remove,['Unknown'])[0]} removed from Room {rn}.")
+            print(f"Patient {patients.get(pid_to_remove, ['Unknown'])[0]} removed from Room {rn}.")
         else:
             print("Patient not found in this room.")
     else:
         print("Room not found.")
 
+
 def discharge_multiple_from_room():
+    """Discharge multiple patients from a room using comma-separated IDs."""
     rn = input("Enter Room Number: ")
     if rn not in rooms:
         print("Room not found.")
@@ -321,15 +441,15 @@ def discharge_multiple_from_room():
         return
     print("Patients in room:")
     for pid in rooms[rn][2]:
-        print(f"{pid}: {patients.get(pid,['Unknown'])[0]}")
-    ids = input("Enter Patient IDs to discharge (comma-separated): ").split(",")
+        print(f"  {pid}: {patients.get(pid, ['Unknown'])[0]}")
+    ids        = input("Enter Patient IDs to discharge (comma-separated): ").split(",")
     discharged = []
-    not_found = []
+    not_found  = []
     for pid in ids:
         pid = pid.strip()
         if pid in rooms[rn][2]:
             rooms[rn][2].remove(pid)
-            discharged.append(patients.get(pid,['Unknown'])[0])
+            discharged.append(patients.get(pid, ["Unknown"])[0])
         else:
             not_found.append(pid)
     save_data(ROOM_FILE, rooms)
@@ -338,23 +458,27 @@ def discharge_multiple_from_room():
     if not_found:
         print("Patient IDs not found in room:", ", ".join(not_found))
 
+
 def view_rooms():
+    """Display all rooms with current occupancy and remaining capacity."""
     if not rooms:
         print("No rooms found.")
         return
     for rn, r in rooms.items():
-        patient_list = [patients[pid][0] for pid in r[2] if pid in patients]
+        patient_list    = [patients[pid][0] for pid in r[2] if pid in patients]
         remaining_slots = r[1] - len(r[2])
-        patient_info = ", ".join(patient_list) if patient_list else "Vacant"
+        patient_info    = ", ".join(patient_list) if patient_list else "Vacant"
         print(f"Room {rn} | Type: {r[0]} | Patients: {patient_info} | Remaining Slots: {remaining_slots}")
 
+
 def room_menu():
+    """Display and handle the room management menu."""
     while True:
         print("""
 ==========================
     Room Management
 ==========================
-              
+
 1 Add Room
 2 Allot Room
 3 Discharge Patient from Room
@@ -362,9 +486,8 @@ def room_menu():
 5 View Rooms
 6 Back
 """)
-        
         c = input("Select: ")
-        if c == "1": add_room()
+        if   c == "1": add_room()
         elif c == "2": allot_room()
         elif c == "3": discharge_room()
         elif c == "4": discharge_multiple_from_room()
@@ -372,25 +495,26 @@ def room_menu():
         elif c == "6": break
 
 # =====================================================
-# MAIN MENU
+#                    MAIN MENU
 # =====================================================
 
 def main_menu():
+    """Display and handle the main system menu."""
     while True:
         print("""
 =================================
  Hospital Management System
+ Linquora 2.0
 =================================
-              
+
 1 Patient Management
 2 Doctor Management
 3 Appointment Management
 4 Room Management
 5 Exit
 """)
-
         c = input("Select: ")
-        if c == "1": patient_menu()
+        if   c == "1": patient_menu()
         elif c == "2": doctor_menu()
         elif c == "3": appointment_menu()
         elif c == "4": room_menu()
@@ -398,4 +522,6 @@ def main_menu():
             print("System Closed.")
             break
 
-main_menu()
+
+if __name__ == "__main__":
+    main_menu()
