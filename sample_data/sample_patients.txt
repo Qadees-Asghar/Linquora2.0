@@ -1,3 +1,0 @@
-1|Ali Khan|30|Male|35202-1234567-1|0300-1234567|Fever
-2|Sara Ahmed|25|Female|35202-7654321-2|0311-9876543|Diabetes
-3|Bilal Raza|45|Male|35202-1111111-3|0333-1111111|Hypertension
