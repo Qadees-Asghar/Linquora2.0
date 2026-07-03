@@ -1,4 +1,0 @@
-1|Dr. Ahmed Raza|Cardiology
-2|Dr. Sara Malik|Neurology
-3|Dr. Usman Ali|General Medicine
-4|Dr. Hina Shah|Orthopedics
