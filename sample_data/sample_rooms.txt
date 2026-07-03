@@ -1,4 +1,0 @@
-101|General|5|1,2
-102|ICU|1|3
-103|Private|1|
-104|Semi-Private|2|
